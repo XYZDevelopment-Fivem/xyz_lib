@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xyz_lib</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+    --accent:#8a2bff;
+    --accent2:#aa62ff;
+    --bg:#0b0b10;
+    --panel:#111118;
+    --panel2:#171720;
+    --panel3:#1b1b25;
+    --border:rgba(255,255,255,.07);
+    --borderStrong:rgba(255,255,255,.10);
+    --text:#f4f4fb;
+    --muted:#9c9cb0;
+    --shadow:0 14px 32px rgba(0,0,0,.32);
+    --danger:#ff4a4a;
+    --success:#55d68c;
+    --warning:#ffb347;
+    --info:#8a2bff;
+}
+
+*{
+    box-sizing:border-box;
+    user-select:none;
+    -webkit-user-select:none;
+    font-family:'JetBrains Mono', monospace;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:transparent;
+}
+
+body{
+    color:var(--text);
+    pointer-events:none;
+}
+
+#notifyRoot{
+    position:fixed;
+    top:24px;
+    right:24px;
+    width:350px;
+    max-width:calc(100vw - 32px);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:stretch;
+}
+
+.notify{
+    position:relative;
+    overflow:hidden;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.025), transparent 34%),
+        linear-gradient(180deg, var(--panel3), var(--panel2));
+    box-shadow:var(--shadow);
+    opacity:0;
+    transform:translate3d(64px, 8px, 0) scale(.94);
+    transition:
+        transform .34s cubic-bezier(.16,1,.3,1),
+        opacity .24s ease,
+        border-color .14s ease;
+    will-change:transform, opacity;
+}
+
+.notify.show{
+    opacity:1;
+    transform:translate3d(0, 0, 0) scale(1);
+}
+
+.notify.hide{
+    opacity:0;
+    transform:translate3d(38px, 0, 0) scale(.97);
+}
+
+.notify::before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg, var(--accent2), var(--accent));
+}
+
+.notify.success::before{
+    background:linear-gradient(180deg, #7ff0ad, var(--success));
+}
+.notify.error::before{
+    background:linear-gradient(180deg, #ff7a7a, var(--danger));
+}
+.notify.warning::before{
+    background:linear-gradient(180deg, #ffd089, var(--warning));
+}
+.notify.info::before{
+    background:linear-gradient(180deg, var(--accent2), var(--accent));
+}
+
+.notifyInner{
+    position:relative;
+    padding:12px 13px 12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.notifyTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.notifyTitle{
+    font-size:11px;
+    font-weight:800;
+    color:var(--text);
+    letter-spacing:.2px;
+    opacity:0;
+    transform:translateY(8px);
+}
+
+.notify.show .notifyTitle{
+    animation:notifyTextIn .28s ease .08s forwards;
+}
+
+.notifyBadge{
+    min-width:60px;
+    height:22px;
+    padding:0 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:4px;
+    background:#14141d;
+    border:1px solid var(--borderStrong);
+    color:var(--muted);
+    font-size:9px;
+    font-weight:800;
+    text-transform:uppercase;
+    opacity:0;
+    transform:translateY(8px) scale(.96);
+}
+
+.notify.show .notifyBadge{
+    animation:notifyBadgeIn .26s cubic-bezier(.16,1,.3,1) .12s forwards;
+}
+
+.notify.success .notifyBadge{
+    color:#eafff2;
+    border-color:rgba(85,214,140,.18);
+    background:rgba(85,214,140,.08);
+}
+.notify.error .notifyBadge{
+    color:#ffecec;
+    border-color:rgba(255,74,74,.18);
+    background:rgba(255,74,74,.08);
+}
+.notify.warning .notifyBadge{
+    color:#fff4df;
+    border-color:rgba(255,179,71,.18);
+    background:rgba(255,179,71,.08);
+}
+.notify.info .notifyBadge{
+    color:#eddcff;
+    border-color:rgba(138,43,255,.18);
+    background:rgba(138,43,255,.08);
+}
+
+.notifyDesc{
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.55;
+    word-break:break-word;
+    opacity:0;
+    transform:translateY(10px);
+}
+
+.notify.show .notifyDesc{
+    animation:notifyTextIn .28s ease .15s forwards;
+}
+
+.notifyBar{
+    position:relative;
+    width:100%;
+    height:4px;
+    overflow:hidden;
+    border-radius:99px;
+    background:rgba(255,255,255,.05);
+    opacity:0;
+    transform:translateY(8px);
+}
+
+.notify.show .notifyBar{
+    animation:notifyTextIn .24s ease .18s forwards;
+}
+
+.notifyFill{
+    position:absolute;
+    inset:0 auto 0 0;
+    width:100%;
+    border-radius:99px;
+    background:linear-gradient(90deg, var(--accent2), var(--accent));
+    transform-origin:left center;
+}
+
+.notify.success .notifyFill{
+    background:linear-gradient(90deg, #7ff0ad, var(--success));
+}
+.notify.error .notifyFill{
+    background:linear-gradient(90deg, #ff7a7a, var(--danger));
+}
+.notify.warning .notifyFill{
+    background:linear-gradient(90deg, #ffd089, var(--warning));
+}
+.notify.info .notifyFill{
+    background:linear-gradient(90deg, var(--accent2), var(--accent));
+}
+
+#progressWrap{
+    position:fixed;
+    left:50%;
+    bottom:30px;
+    transform:translate3d(-50%,14px,0) scale(.985);
+    width:420px;
+    max-width:calc(100vw - 32px);
+    opacity:0;
+    transition:
+        opacity .18s ease,
+        transform .18s ease;
+    will-change:transform, opacity;
+}
+
+#progressWrap.show{
+    opacity:1;
+    transform:translate3d(-50%,0,0) scale(1);
+}
+
+.progressCard{
+    position:relative;
+    overflow:hidden;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.025), transparent 34%),
+        linear-gradient(180deg, #12121a, #0d0d13);
+    box-shadow:0 12px 28px rgba(0,0,0,.28);
+    padding:12px;
+}
+
+.progressCard::before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg, var(--accent2), var(--accent));
+}
+
+.progressTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+}
+
+.progressTitle{
+    color:var(--text);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.2px;
+}
+
+.progressPercent{
+    color:#d9c0ff;
+    font-size:10px;
+    font-weight:800;
+}
+
+.progressLabel{
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.5;
+    margin-bottom:9px;
+    word-break:break-word;
+}
+
+.progressBar{
+    position:relative;
+    height:8px;
+    border-radius:999px;
+    overflow:hidden;
+    background:#14141d;
+    border:1px solid rgba(255,255,255,.04);
+}
+
+.progressFill{
+    position:absolute;
+    inset:0 auto 0 0;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    transition:none;
+}
+
+.progressBottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-top:8px;
+}
+
+.progressHint{
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.45;
+}
+
+.progressTime{
+    color:var(--text);
+    font-size:9px;
+    font-weight:800;
+}
+
+#textUiWrap{
+    position:fixed;
+    opacity:0;
+    transition:
+        opacity .16s ease,
+        transform .22s cubic-bezier(.16,1,.3,1);
+    will-change:transform, opacity;
+}
+
+#textUiWrap.right{
+    right:24px;
+    top:50%;
+    transform:translate3d(30px,-50%,0) scale(.97);
+}
+
+#textUiWrap.left{
+    left:24px;
+    top:50%;
+    transform:translate3d(-30px,-50%,0) scale(.97);
+}
+
+#textUiWrap.top{
+    left:50%;
+    top:24px;
+    transform:translate3d(-50%,-16px,0) scale(.97);
+}
+
+#textUiWrap.show{
+    opacity:1;
+}
+
+#textUiWrap.right.show{
+    transform:translate3d(0,-50%,0) scale(1);
+}
+
+#textUiWrap.left.show{
+    transform:translate3d(0,-50%,0) scale(1);
+}
+
+#textUiWrap.top.show{
+    transform:translate3d(-50%,0,0) scale(1);
+}
+
+.textUiCard{
+    min-width:240px;
+    max-width:360px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.025), transparent 34%),
+        linear-gradient(180deg, #12121a, #0d0d13);
+    box-shadow:0 12px 28px rgba(0,0,0,.28);
+    padding:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.textUiKey{
+    min-width:34px;
+    height:34px;
+    padding:0 10px;
+    border-radius:5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(180deg, var(--accent2), var(--accent));
+    color:#fff;
+    font-size:12px;
+    font-weight:800;
+    flex-shrink:0;
+}
+
+.textUiBody{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.textUiText{
+    color:var(--text);
+    font-size:11px;
+    font-weight:800;
+    line-height:1.35;
+    word-break:break-word;
+}
+
+.textUiSubtext{
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.45;
+    word-break:break-word;
+}
+
+@keyframes notifyTextIn{
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes notifyBadgeIn{
+    0%{
+        opacity:0;
+        transform:translateY(8px) scale(.96);
+    }
+    65%{
+        opacity:1;
+        transform:translateY(-1px) scale(1.02);
+    }
+    100%{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 700px){
+    #notifyRoot{
+        top:16px;
+        right:16px;
+        width:calc(100vw - 24px);
+    }
+
+    #progressWrap{
+        bottom:18px;
+        width:calc(100vw - 24px);
+    }
+
+    #textUiWrap.right,
+    #textUiWrap.left{
+        right:12px;
+        left:12px;
+        top:auto;
+        bottom:92px;
+        transform:translate3d(0,16px,0) scale(.97);
+    }
+
+    #textUiWrap.right.show,
+    #textUiWrap.left.show{
+        transform:translate3d(0,0,0) scale(1);
+    }
+
+    #textUiWrap.top{
+        top:14px;
+        left:50%;
+        transform:translate3d(-50%,-16px,0) scale(.97);
+    }
+
+    .textUiCard{
+        max-width:calc(100vw - 24px);
+    }
+}
+</style>
+</head>
+<body>
+    <div id="notifyRoot"></div>
+
+    <div id="progressWrap">
+        <div class="progressCard">
+            <div class="progressTop">
+                <div class="progressTitle" id="progressTitle">PROGRESS</div>
+                <div class="progressPercent" id="progressPercent">0%</div>
+            </div>
+            <div class="progressLabel" id="progressLabel">Loading...</div>
+            <div class="progressBar">
+                <div class="progressFill" id="progressFill"></div>
+            </div>
+            <div class="progressBottom">
+                <div class="progressHint" id="progressHint">Please wait</div>
+                <div class="progressTime" id="progressTime">0.0s</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="textUiWrap" class="right">
+        <div class="textUiCard">
+            <div class="textUiKey" id="textUiKey">E</div>
+            <div class="textUiBody">
+                <div class="textUiText" id="textUiText">Interact</div>
+                <div class="textUiSubtext" id="textUiSubtext"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const notifyRoot = document.getElementById('notifyRoot')
+const progressWrap = document.getElementById('progressWrap')
+const progressTitle = document.getElementById('progressTitle')
+const progressPercent = document.getElementById('progressPercent')
+const progressLabel = document.getElementById('progressLabel')
+const progressFill = document.getElementById('progressFill')
+const progressHint = document.getElementById('progressHint')
+const progressTime = document.getElementById('progressTime')
+
+const textUiWrap = document.getElementById('textUiWrap')
+const textUiKey = document.getElementById('textUiKey')
+const textUiText = document.getElementById('textUiText')
+const textUiSubtext = document.getElementById('textUiSubtext')
+
+let activeProgressId = null
+let activeProgressPercent = -1
+let activeProgressTime = -1
+
+function formatSeconds(ms){
+    const sec = Math.max(0, ms / 1000)
+    return `${sec.toFixed(1)}s`
+}
+
+function createNotify(data){
+    const el = document.createElement('div')
+    el.className = `notify ${data.type || 'info'}`
+
+    const inner = document.createElement('div')
+    inner.className = 'notifyInner'
+
+    const top = document.createElement('div')
+    top.className = 'notifyTop'
+
+    const title = document.createElement('div')
+    title.className = 'notifyTitle'
+    title.textContent = data.title || 'NOTIFY'
+
+    const badge = document.createElement('div')
+    badge.className = 'notifyBadge'
+    badge.textContent = String(data.type || 'info').toUpperCase()
+
+    top.appendChild(title)
+    top.appendChild(badge)
+
+    const desc = document.createElement('div')
+    desc.className = 'notifyDesc'
+    desc.textContent = data.description || ''
+
+    const bar = document.createElement('div')
+    bar.className = 'notifyBar'
+
+    const fill = document.createElement('div')
+    fill.className = 'notifyFill'
+
+    bar.appendChild(fill)
+    inner.appendChild(top)
+    inner.appendChild(desc)
+    inner.appendChild(bar)
+    el.appendChild(inner)
+
+    notifyRoot.appendChild(el)
+
+    requestAnimationFrame(() => {
+        el.classList.add('show')
+    })
+
+    const duration = Math.max(1000, Number(data.duration) || 4000)
+
+    fill.animate(
+        [
+            { transform: 'scaleX(1)' },
+            { transform: 'scaleX(0)' }
+        ],
+        {
+            duration: duration,
+            easing: 'linear',
+            fill: 'forwards'
+        }
+    )
+
+    setTimeout(() => {
+        el.classList.remove('show')
+        el.classList.add('hide')
+
+        setTimeout(() => {
+            if (el.parentNode) {
+                el.parentNode.removeChild(el)
+            }
+        }, 260)
+    }, duration)
+}
+
+function startProgress(data){
+    activeProgressId = data.id
+    activeProgressPercent = -1
+    activeProgressTime = -1
+
+    progressTitle.textContent = data.title || 'PROGRESS'
+    progressLabel.textContent = data.label || 'Loading...'
+    progressPercent.textContent = '0%'
+    progressFill.style.width = '0%'
+    progressTime.textContent = formatSeconds(data.duration || 0)
+    progressHint.textContent = data.canCancel ? 'X = cancel' : 'Please wait'
+    progressWrap.classList.add('show')
+}
+
+function updateProgress(data){
+    if (activeProgressId === null || data.id !== activeProgressId) return
+
+    const percent = Math.max(0, Math.min(100, Math.floor(Number(data.percent) || 0)))
+    const remaining = Math.max(0, Math.floor(Number(data.remaining) || 0))
+
+    const nextTitle = data.title || 'PROGRESS'
+    const nextLabel = data.label || 'Loading...'
+
+    if (progressTitle.textContent !== nextTitle) {
+        progressTitle.textContent = nextTitle
+    }
+
+    if (progressLabel.textContent !== nextLabel) {
+        progressLabel.textContent = nextLabel
+    }
+
+    if (percent !== activeProgressPercent) {
+        activeProgressPercent = percent
+        progressPercent.textContent = `${percent}%`
+        progressFill.style.width = `${percent}%`
+    }
+
+    if (remaining !== activeProgressTime) {
+        activeProgressTime = remaining
+        progressTime.textContent = formatSeconds(remaining)
+    }
+}
+
+function stopProgress(data){
+    if (activeProgressId === null || data.id !== activeProgressId) return
+
+    activeProgressId = null
+    activeProgressPercent = -1
+    activeProgressTime = -1
+    progressWrap.classList.remove('show')
+}
+
+function setTextUiData(data){
+    const position = (data.position || 'right').toLowerCase()
+    const accent = data.accent || '#8a2bff'
+
+    textUiWrap.className = ''
+    textUiWrap.id = 'textUiWrap'
+    textUiWrap.classList.add(position === 'left' || position === 'top' ? position : 'right')
+
+    textUiKey.textContent = data.key || 'E'
+    textUiText.textContent = data.text || 'Interact'
+    textUiSubtext.textContent = data.subtext || ''
+    textUiSubtext.style.display = data.subtext && data.subtext.length > 0 ? 'block' : 'none'
+    textUiKey.style.background = `linear-gradient(180deg, ${shadeColor(accent, 18)}, ${accent})`
+}
+
+function shadeColor(hex, percent){
+    if (!hex || typeof hex !== 'string' || hex[0] !== '#') {
+        return '#aa62ff'
+    }
+
+    let color = hex.slice(1)
+
+    if (color.length === 3) {
+        color = color.split('').map(v => v + v).join('')
+    }
+
+    const num = parseInt(color, 16)
+    if (isNaN(num)) return '#aa62ff'
+
+    let r = (num >> 16) & 255
+    let g = (num >> 8) & 255
+    let b = num & 255
+
+    r = Math.min(255, Math.max(0, r + Math.floor((255 - r) * (percent / 100))))
+    g = Math.min(255, Math.max(0, g + Math.floor((255 - g) * (percent / 100))))
+    b = Math.min(255, Math.max(0, b + Math.floor((255 - b) * (percent / 100))))
+
+    return `rgb(${r}, ${g}, ${b})`
+}
+
+function showTextUi(data){
+    setTextUiData(data || {})
+    textUiWrap.classList.add('show')
+}
+
+function updateTextUi(data){
+    setTextUiData(data || {})
+    if (!textUiWrap.classList.contains('show')) {
+        textUiWrap.classList.add('show')
+    }
+}
+
+function hideTextUi(){
+    textUiWrap.classList.remove('show')
+}
+
+window.addEventListener('message', (event) => {
+    const msg = event.data
+    if (!msg || !msg.action) return
+
+    if (msg.action === 'notify') {
+        createNotify(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'progressStart') {
+        startProgress(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'progressUpdate') {
+        updateProgress(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'progressStop') {
+        stopProgress(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'textuiShow') {
+        showTextUi(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'textuiUpdate') {
+        updateTextUi(msg.data || {})
+        return
+    }
+
+    if (msg.action === 'textuiHide') {
+        hideTextUi()
+        return
+    }
+})
+</script>
+</body>
+</html>

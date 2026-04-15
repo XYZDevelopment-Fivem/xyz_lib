@@ -1,4 +1,6 @@
-# xyz_lib
+# DISCORD: https://discord.gg/AevgUUYugm
+
+# XYZ_LIB
 
 Standalone FiveM UI library with clean visuals, simple exports and low overhead.
 
